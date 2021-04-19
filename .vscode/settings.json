@@ -1,0 +1,7 @@
+{
+    "cmake.configureOnOpen": true,
+    "cmake.configureArgs": [
+        "-DHTML5_DEMO_BOOST_DIR=C:/Dev/libs/boost/boost_1_76_0"
+    ],
+    "cmake.generator": "Ninja"
+}
