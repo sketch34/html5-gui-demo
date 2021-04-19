@@ -7,7 +7,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 project(html5-gui-demo)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+# Multi-configuration generators (Visual Studio, Xcode, Ninja Multi-Config) append a 
+# per-configuration subdirectory to the specified directory unless a generator expression is used.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
 
 option(HTML_5_DEMO_CLI_ONLY "only enable command-line demos (suitable when there's no X)" OFF)
 
