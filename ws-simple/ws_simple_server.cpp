@@ -5,6 +5,7 @@
 // See accompanying file LICENSE.txt or copy at
 // https://opensource.org/licenses/MIT
 //
+#include <sdkddkver.h>
 #include <iostream>
 
 #include <boost/beast/core.hpp>

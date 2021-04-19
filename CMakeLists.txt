@@ -7,6 +7,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 project(html5-gui-demo)
 
+# set(CEF_VERSION 90.5.4+gc6a4331+chromium-90.0.4430.72)
+set(CEF_VERSION 75.1.4+g4210896+chromium-75.0.3770.100)
+
 # Multi-configuration generators (Visual Studio, Xcode, Ninja Multi-Config) append a 
 # per-configuration subdirectory to the specified directory unless a generator expression is used.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
