@@ -85,8 +85,10 @@ public:
         }
 
         {
+            CEF_REQUIRE_UI_THREAD();
+            // const void* hwnd = sapp_win32_get_hwnd();
             CefWindowInfo windowInfo;
-            windowInfo.SetAsWindowless(0);
+            windowInfo.SetAsWindowless(NULL);
             windowInfo.shared_texture_enabled = false;
 
             CefBrowserSettings browserSettings;
@@ -352,6 +354,21 @@ public:
     {
         updateTextureFromCef(reinterpret_cast<const uint8_t*>(buffer), width, height);
     }
+
+    // // Called when an element has been rendered to the shared texture handle.
+    // // |type| indicates whether the element is the view or the popup widget.
+    // // |dirtyRects| contains the set of rectangles in pixel coordinates that need
+    // // to be repainted. |shared_handle| is the handle for a D3D11 Texture2D that
+    // // can be accessed via ID3D11Device using the OpenSharedResource method. This
+    // // method is only called when CefWindowInfo::shared_texture_enabled is set to
+    // // true, and is currently only supported on Windows.
+    // virtual void OnAcceleratedPaint(CefRefPtr<CefBrowser> browser,
+    //                                 PaintElementType type,
+    //                                 const RectList& dirtyRects,
+    //                                 void* shared_handle)
+    // {
+
+    // }
 
 private:
     CefRefPtr<CefBrowser> m_browser;
