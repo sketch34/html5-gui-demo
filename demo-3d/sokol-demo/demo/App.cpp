@@ -172,29 +172,73 @@ matrix operator*(const matrix& a, const matrix& b)
     );
 }
 
+#if defined(GRAPHICS_D3D)
+    const char* vs_src = R"hlsl(
 
-const char* vs_src = R"glsl(
-#version 330
-uniform mat4 u_projView;
-uniform mat4 u_model;
-in vec4 a_position;
-in vec3 a_color;
-out vec3 v_color;
-void main() {
-    v_color = a_color;
-    gl_Position = u_projView * u_model * a_position;
-};
-)glsl";
+    cbuffer MatrixBuffer
+    {
+        matrix u_projView;
+        matrix u_model;
+    };
 
-const char* fs_src = R"glsl(
-#version 330
-uniform sampler2D tex;
-in vec3 v_color;
-out vec4 frag_color;
-void main() {
-    frag_color = vec4(v_color, 1);
-};
-)glsl";
+    struct VertexShaderInput
+    {
+        float4 Position : POSITION;
+        float4 Color : COLOR;
+    };
+
+    struct PixelShaderInput
+    {
+        float4 Position : SV_POSITION;
+        float4 Color : COLOR;
+    };
+
+    PixelShaderInput main(VertexShaderInput input) {
+        PixelShaderInput output;
+        output.Color = input.Color;
+        matrix mvp = mul(u_projView, u_model);
+        output.Position = mul(mvp, input.Position);
+        return output;
+    };
+    )hlsl";
+
+    const char* fs_src = R"hlsl(
+    struct PixelShaderInput
+    {
+        float4 Position : SV_POSITION;
+        float4 Color : COLOR;
+    };
+
+    float4 main(PixelShaderInput input) : SV_TARGET {
+        return input.Color;
+    };
+    )hlsl";
+#elif defined(GRAPHICS_GL)
+    const char* vs_src = R"glsl(
+    #version 330
+    uniform mat4 u_projView;
+    uniform mat4 u_model;
+    in vec4 a_position;
+    in vec3 a_color;
+    out vec3 v_color;
+    void main() {
+        v_color = a_color;
+        gl_Position = u_projView * u_model * a_position;
+    };
+    )glsl";
+
+    const char* fs_src = R"glsl(
+    #version 330
+    uniform sampler2D tex;
+    in vec3 v_color;
+    out vec4 frag_color;
+    void main() {
+        frag_color = vec4(v_color, 1);
+    };
+    )glsl";
+#else
+    #pragma error("No shader for this Graphics API.");
+#endif
 
 struct UniformBlock
 {
@@ -255,8 +299,10 @@ public:
 
         {
             sg_shader_desc desc = { };
-            desc.attrs[0].name = "a_position";
-            desc.attrs[1].name = "a_color";
+            desc.attrs[0].name = "Position";
+            desc.attrs[1].name = "Color";
+            desc.attrs[0].sem_name = "POSITION";
+            desc.attrs[1].sem_name = "COLOR";
 
             desc.vs.uniform_blocks[0].size = sizeof(UniformBlock);
             desc.vs.uniform_blocks[0].uniforms[0].name = "u_projView";
@@ -266,6 +312,7 @@ public:
 
             desc.fs.source = fs_src;
             desc.vs.source = vs_src;
+
             m_shader = sg_make_shader(&desc);
         }
 

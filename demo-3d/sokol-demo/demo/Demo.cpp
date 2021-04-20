@@ -12,7 +12,8 @@
 #define SOKOL_NO_DEPRECATED
 #define SOKOL_IMPL
 #define SOKOL_NO_ENTRY
-#define SOKOL_GLCORE33
+//#define SOKOL_GLCORE33
+#define SOKOL_D3D11
 #if !defined(NDEBUG)
 #   define SOKOL_DEBUG 1
 #endif

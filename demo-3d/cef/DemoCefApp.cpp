@@ -35,6 +35,31 @@ void setupResourceManagerDirectoryProvider(CefRefPtr<CefResourceManager> resourc
     resource_manager->AddDirectoryProvider(uri, dir, 1, dir);
 }
 
+#if defined(GRAPHICS_D3D)
+const char* cef_vs_src = R"hlsl(
+struct vs_in {
+    float2 position: POSITION;
+    float2 texcoord: TEXCOORD0;
+};
+struct vs_out {
+    float2 uv: TEXCOORD0;
+    float4 pos: SV_Position;
+};
+vs_out main(vs_in inp) {
+    vs_out outp;
+    outp.pos = float4(inp.position.x, inp.position.y, 0.0, 1.0);
+    outp.uv = inp.texcoord;
+    return outp;
+})hlsl";
+            
+const char* cef_fs_src = R"hlsl(
+Texture2D<float4> tex: register(t0);
+sampler smp: register(s0);
+float4 main(float2 uv: TEXCOORD0) : SV_Target0 {
+   return tex.Sample(smp, uv);
+}
+)hlsl";
+#elif defined(GRAPHICS_GL)
 const char* cef_vs_src = R"glsl(
 #version 330
 in vec2 position;
@@ -55,7 +80,9 @@ void main() {
     frag_color = texture(tex, uv);
 };
 )glsl";
-
+#else
+    #pragma error("No shader for this Graphics API.");
+#endif
 struct float3
 {
     float x, y, z;
@@ -126,6 +153,8 @@ public:
             sg_shader_desc desc = { };
             desc.attrs[0].name = "position";
             desc.attrs[1].name = "texcoord";
+            desc.attrs[0].sem_name = "POSITION";
+            desc.attrs[1].sem_name = "TEXCOORD";
             desc.fs.images[0].name = "tex";
             desc.fs.images[0].type = SG_IMAGETYPE_2D;
             desc.fs.source = cef_fs_src;
