@@ -54,7 +54,7 @@ int Demo::run(std::unique_ptr<App> app)
 
     sapp_desc desc = {};
     desc.window_title = "cef-3d-demo";
-    desc.width = 1024;
+    desc.width = 2024;
     desc.height = 768;
     desc.init_cb = sinit;
     desc.frame_cb = smainLoop;

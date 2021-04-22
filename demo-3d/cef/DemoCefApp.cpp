@@ -22,6 +22,8 @@
 #include <include/cef_app.h>
 #include <cef_cmake/reenable_warnings.h>
 
+#include <strsafe.h>
+
 namespace
 {
 void setupResourceManagerDirectoryProvider(CefRefPtr<CefResourceManager> resource_manager, std::string uri, std::string dir)
@@ -99,6 +101,42 @@ struct CefVertex
     float2 uv;
 };
 
+void _W32VerifyPrintError(bool check, LPTSTR lpszMsg = L"_W32AssertPrintError")
+{
+    if (!check) {
+        // Retrieve the system error message for the last-error code
+        LPVOID lpMsgBuf;
+        LPVOID lpDisplayBuf;
+        DWORD dw = GetLastError(); 
+
+        FormatMessage(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+            FORMAT_MESSAGE_FROM_SYSTEM |
+            FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL,
+            dw,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            (LPTSTR) &lpMsgBuf,
+            0, NULL );
+
+        // Display the error message and exit the process
+
+        lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
+            (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszMsg) + 40) * sizeof(TCHAR)); 
+        StringCchPrintf((LPTSTR)lpDisplayBuf, 
+            LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+            TEXT("%s: failed with error %d: %s\n"), 
+            lpszMsg, dw, lpMsgBuf); 
+        
+        // MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
+        wprintf((LPCTSTR)lpDisplayBuf);
+
+        LocalFree(lpMsgBuf);
+        LocalFree(lpDisplayBuf);
+        // ExitProcess(dw);
+    }
+    assert(check);
+}
 class CefGUI : public demo::GUI, public CefClient, public CefRequestHandler, public CefResourceRequestHandler, public CefRenderHandler
 {
 public:
@@ -113,13 +151,35 @@ public:
 
         {
             CEF_REQUIRE_UI_THREAD();
-            // const void* hwnd = sapp_win32_get_hwnd();
+            HWND hwndTopLevel = (HWND)sapp_win32_get_hwnd();
+            assert(IsWindow(hwndTopLevel));
+            RECT rect;
+            GetClientRect(hwndTopLevel, &rect);
+
             CefWindowInfo windowInfo;
-            windowInfo.SetAsWindowless(NULL);
+            windowInfo.SetAsChild(hwndTopLevel, rect);
+            // windowInfo.SetAsWindowless(NULL);
             windowInfo.shared_texture_enabled = false;
 
             CefBrowserSettings browserSettings;
             m_browser = CefBrowserHost::CreateBrowserSync(windowInfo, this, URL, browserSettings, nullptr, nullptr);
+            // Attempt to set the browser window underneath.
+            CefWindowHandle browserHwnd = m_browser->GetHost()->GetWindowHandle();
+            assert(IsWindow(browserHwnd));
+
+            printf("1: browserHwnd is a child of hwndTopLevel: %d (%d)\n",
+                                                                IsChild(hwndTopLevel, browserHwnd), IsChild(browserHwnd, hwndTopLevel));
+
+
+            // _W32VerifyPrintError(SetWindowLongPtr());
+            _W32VerifyPrintError(SetParent(browserHwnd, NULL));
+            assert(GetParent(hwndTopLevel) == NULL);
+            _W32VerifyPrintError(SetParent(hwndTopLevel, browserHwnd));
+            _W32VerifyPrintError(SetWindowPos(browserHwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE));
+            _W32VerifyPrintError(SetWindowPos(hwndTopLevel, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE));
+
+            printf("1: browserHwnd is a child of hwndTopLevel: %d (%d)\n",
+                                                                IsChild(hwndTopLevel, browserHwnd), IsChild(browserHwnd, hwndTopLevel));
         }
 
         {

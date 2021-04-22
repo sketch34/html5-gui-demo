@@ -18,6 +18,11 @@
 
 int main(int argc, char* argv[])
 {
+    // printf("main() called with args:\n");
+    // for (int i = 0; i < argc; ++i) {
+    //     printf("\t%d: '%s'\n", i, argv[i]);
+    // }
+
     CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
 #if defined(_WIN32)
     CefEnableHighDPISupport();
@@ -42,16 +47,22 @@ int main(int argc, char* argv[])
     if (appType == "renderer" || appType == "zygote") {
         rendererApp = new DemoCefRendererApp;
     }
+
+    printf("App type: %s\n", appType.c_str());
+    
     int result = CefExecuteProcess(args, rendererApp, windowsSandboxInfo);
     if (result >= 0)
     {
+        printf("\tApp type %s - completed\n", appType.c_str());
         // child process completed
         return result;
     }
 
+    printf("Running main demo loop.\n");
+
     CefSettings settings;
     settings.remote_debugging_port = 1234;
-    settings.windowless_rendering_enabled = 1;
+    settings.windowless_rendering_enabled = 0;
 #if !defined(CEF_USE_SANDBOX)
     settings.no_sandbox = true;
 #endif
