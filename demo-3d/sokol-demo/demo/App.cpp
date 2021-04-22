@@ -383,15 +383,17 @@ void App::init()
 
 void App::mainLoop()
 {
-    uint32_t now = App::getTicks();
+    double_t now = App::getTicks();
     m_timeSinceLastFrame = now - m_currentFrameTime;
     m_currentFrameTime = now;
+
+    //printf("%f\n", m_timeSinceLastFrame);
 
     if (m_gui->rotating())
     {
         auto a = m_gui->rotationAxis();
         auto& r = m_rotation.c[a];
-        r += (float(m_timeSinceLastFrame) / 1000) * m_gui->rotationSpeed();
+        r += (float)(m_timeSinceLastFrame / 1000.0) * m_gui->rotationSpeed();
         if (r > PI * 2)
         {
             r -= PI * 2;
@@ -438,13 +440,13 @@ void App::onEvent(const sapp_event& e)
     m_gui->onEvent(e);
 }
 
-uint32_t App::getTicks()
+double_t App::getTicks()
 {
     // actually the time returned is since the first time this function is called
     // but this is very early in the execution time, so it's fine
     static auto start = std::chrono::steady_clock::now();
-    auto time = std::chrono::steady_clock::now() - start;
-    return uint32_t(std::chrono::duration_cast<std::chrono::milliseconds>(time).count()) + 1;
+    std::chrono::duration<double_t, std::milli> delta = std::chrono::steady_clock::now() - start;
+    return delta.count();
 }
 
 }

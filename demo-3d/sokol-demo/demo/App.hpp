@@ -41,7 +41,7 @@ public:
     void shutdown();
     void onEvent(const sapp_event& e);
 
-    static uint32_t getTicks();
+    static double_t getTicks();
 
 protected:
     virtual GUI* createGUI() = 0;
@@ -57,8 +57,8 @@ private:
     int3 m_revolutions = {};
 
     // times and frames
-    uint32_t m_currentFrameTime = 0; // start of current frame (ms)
-    uint32_t m_timeSinceLastFrame = 0; // used as delta for updates
+    double_t m_currentFrameTime = 0; // start of current frame (ms)
+    double_t m_timeSinceLastFrame = 0; // used as delta for updates
 };
 
 }
